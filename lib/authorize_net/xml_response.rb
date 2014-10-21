@@ -8,9 +8,14 @@ module AuthorizeNet
     def initialize(raw_response, transaction)
       @raw_response = raw_response
       @transaction = transaction
+
+      #deflate response body
+      sio = StringIO.new(@raw_response.body)
+      gz = Zlib::GzipReader.new(sio)
+      @raw_response_body = gz.read()
       unless connection_failure?
         begin
-          xml = Nokogiri::XML(@raw_response.body) do |config|
+          xml = Nokogiri::XML(@raw_response_body) do |config|
             # confirm noent is the right flag
             config.recover.noent.nonet
           end

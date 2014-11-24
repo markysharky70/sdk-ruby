@@ -8,11 +8,15 @@ module AuthorizeNet
     def initialize(raw_response, transaction)
       @raw_response = raw_response
       @transaction = transaction
-
-      #deflate response body
-      sio = StringIO.new(@raw_response.body)
-      gz = Zlib::GzipReader.new(sio)
-      @raw_response_body = gz.read()
+      @raw_response_body = nil
+      begin
+        #deflate response body
+        sio = StringIO.new(@raw_response.body)
+        gz = Zlib::GzipReader.new(sio)
+        @raw_response_body = gz.read()
+      rescue
+        @raw_response_body = @raw_response.body
+      end
       unless connection_failure?
         begin
           xml = Nokogiri::XML(@raw_response_body) do |config|
